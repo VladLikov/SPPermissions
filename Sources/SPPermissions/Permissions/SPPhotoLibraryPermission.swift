@@ -27,21 +27,35 @@ import Photos
 struct SPPhotoLibraryPermission: SPPermissionProtocol {
     
     var isAuthorized: Bool {
+        if #available(iOS 14, *) {
+            return PHPhotoLibrary.authorizationStatus(for: .addOnly) == PHAuthorizationStatus.authorized
+        }
         return PHPhotoLibrary.authorizationStatus() == PHAuthorizationStatus.authorized
     }
     
     var isDenied: Bool {
+        if #available(iOS 14, *) {
+            return PHPhotoLibrary.authorizationStatus(for: .addOnly) == PHAuthorizationStatus.denied
+        }
         return PHPhotoLibrary.authorizationStatus() == PHAuthorizationStatus.denied
     }
     
     func request(completion: @escaping ()->()?) {
-        PHPhotoLibrary.requestAuthorization({
-            finished in
-            DispatchQueue.main.async {
-                completion()
+        if #available(iOS 14, *) {
+            PHPhotoLibrary.requestAuthorization(for: .addOnly) { (finished) in
+                DispatchQueue.main.async {
+                    completion()
+                }
             }
-        })
+        } else {
+            PHPhotoLibrary.requestAuthorization() { (finished) in
+                DispatchQueue.main.async {
+                    completion()
+                }
+            }
+        }
     }
+    
 }
 
 #endif
